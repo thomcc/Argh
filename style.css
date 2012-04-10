@@ -56,7 +56,31 @@ html, canvas, img {
 }
 body {
   width: 720px;
-  background-color: #000;
+  background-color: #666;
   margin: auto;
   margin-top: 100px;
 }
+#screen {
+  width: 720px;
+  height: 480px;
+  position: relative;
+  border: 1px solid black;
+  z-index: 10000001;
+  overflow: hidden;
+}
+div#floor {
+ position : absolute;
+ width : 100%;
+ height : 100%;
+ background-color : rgb(128,128,128);
+ z-index : -10000000;
+}
+
+div#ceiling {
+ position : absolute;
+ width : 720px;
+ height : 240px;
+ background-color : rgb(80,80,80);
+ z-index : -10000000;
+}
+
