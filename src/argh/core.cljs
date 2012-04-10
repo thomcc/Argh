@@ -1,4 +1,5 @@
 (ns argh.core
+  (:require [clojure.string :as str])
   (:use-macros [argh.macros :only [with-path]])
   ;; (:require [clojure.browser.repl :as repl])
   )
@@ -11,30 +12,8 @@
 (def pi Math/PI)
 (def two-pi  (* pi 2))
 (def half-pi (/ pi 2))
-
-
-(defn fill-style [ctx color] (set! ctx.fillStyle color) ctx)
-(defn stroke-style [ctx color] (set! ctx.strokeStyle color) ctx)
-(defn line-width [ctx wid] (set! ctx.lineWidth wid) ctx)
-(defn fill-rect [ctx x y w h] (.fillRect ctx x y w h) ctx)
-(defn clear-rect [ctx x y w h] (.clearRect ctx x y w h) ctx)
-(defn move-to [ctx x y] (.moveTo ctx x y) ctx)
-(defn line-to [ctx x y] (.lineTo ctx x y) ctx)
-(defn stroke [ctx] (.stroke ctx))
-(defn context [canvas] (.getContext canvas "2d"))
-(defn clear [canvas]
-  (-> (context canvas) (clear-rect 0 0 canvas.width canvas.height)))
-
-(defn draw-line
-  [x0 y0 x1 y1 canvas scale col]
-  (doto (context canvas)
-    (stroke-style col)
-    (line-width 0.5)
-    (with-path
-      (move-to (* x0 scale) (* y0 scale))
-      (line-to (* x1 scale) (* y1 scale)))
-    stroke))
-
+(def screen-width 720)
+(def screen-height 480)
 (defn hypot [x y] (+ (* x x) (* y y)))
 (defn ensure-circ [angle]
   (cond (or (== angle 0) (== angle two-pi)) 0
@@ -47,21 +26,40 @@
     (cond (<= 0 a half-pi) [true true]
           (<= half-pi a pi) [true false]
           (<= pi a (* 3 half-pi)) [false false]
-          :else [false true]))) ; (<= (* 3 half-pi) a two-pi)
+          :else [false true])))
 (defn wait [ms func] (js* "setTimeout(~{func}, ~{ms})"))
-(def map-canvas (.getElementById js/document "map"))
-(def ent-canvas (.getElementById js/document "entities"))
 
-(def ray-width 8)
+(def screen (.getElementById js/document "screen"))
+(def ray-width 16)
 (def fov (* 60 (/ Math/PI 180)))
-(def rays (Math/ceil (/ (.-width ent-canvas) ray-width)))
-(def view-dist (/ (/ (.-width ent-canvas) 2) (Math/tan (/ fov 2))))
+(def rays (Math/ceil (/ screen-width ray-width)))
+(def view-dist (/ (/ screen-width 2) (Math/tan (/ fov 2))))
+(def bars
+  (loop [i 0, s []]
+    (if (> i screen-width) s
+        (let [d (.createElement js/document "div")
+              img (js/Image.)]
+          (doto (.-style d)
+            (aset "position" "absolute")
+            (aset "left" (str i "px"))
+            (aset "width" (str ray-width "px"))
+            (aset "overflow" "hidden"))
+          (doto (.-style img)
+            (aset "position" "absolute")
+            (aset "left" "0px"))
+          (set! (.-src img) "res/wall.png")
+          (set! (.-img d) img)
+          (.appendChild d img)
+          (.appendChild screen d)
+          (recur (+ i ray-width) (conj s d))))))
 
 (defrecord Player [x y rot move-speed rot-speed])
 (defn spawn-player [x y] (Player. x y (rand) 0.18 (* 6 (/ pi 180))))
 (defrecord Level [w h data])
-(defn make-level [data]
-  (Level. (count (nth data 0)) (count data) data))
+
+(defn make-level [data] (Level. (count (nth data 0)) (count data) data))
+(defn empty-level [w h] (Level w h (vec (repeatedly h #(vec (repeat w 0))))))
+
 (defrecord Game [player level])
 
 (defn new-game []
@@ -91,17 +89,6 @@
                       [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
                       [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]])))
 
-(defn draw-map
-  [{:keys [w h data]} canvas]
-  (let [ctx (context canvas)
-        scale (min (/ canvas.width w) (/ canvas.height h))]
-    (-> ctx (fill-style "white") (fill-rect 0 0 canvas.width canvas.height))
-    (dotimes [y h]
-      (dotimes [x w]
-        (when (> (nth (nth data y) x) 0)
-          (-> ctx
-              (fill-style "gray")
-              (fill-rect (* x scale) (* y scale) scale scale)))))))
 
 (defn free? [{:keys [w h data]} x y]
   (and (not (neg? x)) (not (neg? y)) (> h y) (> w x)
@@ -129,46 +116,62 @@
 (def decode {27 :escape, 38 :up, 40 :down, 37 :left, 39 :right})
 
 (defn cast-ray
-  [{{px :x py :y :as player} :player, {:keys [w h data]} :level} angle canvas]
-  (let [scale (min (/ canvas.width w) (/ canvas.height h))
+  [{{px :x py :y rot :rot :as player} :player, {:keys [w h data]} :level} angle num]
+  (let [scale (min (/ screen-width w) (/ screen-height h))
         cast-out
         (fn [x y, dx dy, dwx dwy]
           (loop [x x, y y]
-            (if-not (and (< 0 x w) (< 0 y h)) [x y 0]
+            (if-not (and (< 0 x w) (< 0 y h)) [x y 0 0] ; getting absurd...
                     (let [wx (Math/floor (+ dwx x)), wy (Math/floor (+ dwy y))]
-                      (if (pos? (nth (nth data wy) wx)) [x y (hypot (- x px) (- y py))]
-                          (recur (+ x dx) (+ y dy)))))))
+                      (if (pos? (nth (nth data wy) wx))
+                        [x y (hypot (- x px) (- y py)) (nth (nth data wy) wx)]
+                        (recur (+ x dx) (+ y dy)))))))
         [up? right?] (up-right angle)
         slope (Math/tan angle)
         x (if right? (Math/ceil px) (Math/floor px))
-        [xhit1 yhit1 hitdist1 :as hit1]
+        [xhit1 yhit1 hitdist1 wall1 :as hit1]
         (cast-out x (+ py (* (- x px) slope))
                   (if right? 1 -1) (* (if right? 1 -1) slope)
                   (if right? 0 -1) 0)
         y (if up? (Math/ceil py) (Math/floor py))
-        [xhit2 yhit2 hitdist2 :as hit2]
+        [xhit2 yhit2 hitdist2 wall2 :as hit2]
         (cast-out (+ px (/ (- y py) slope)) y
                   (/ (if up? 1 -1) slope) (if up? 1 -1)
                   0 (if up? 0 -1))
-        [xhit yhit hitdist]
-        (if (or (zero? hitdist1) (and (pos? hitdist2) (< hitdist2 hitdist1))) hit2 hit1)]
+        [xhit yhit hitdist wall horiz xtx]
+        (if (or (zero? hitdist1) (and (pos? hitdist2) (< hitdist2 hitdist1)))
+          (conj hit2 (if up? 1 0) false (mod yhit2 1))
+          (conj hit1 (if right? 1 0)) true (mod xhit1 1))]
     (when-not (zero? hitdist)
-      (draw-line px py xhit yhit canvas scale "blue"))))
+      (let [s (nth bars num)
+            d (* (Math/cos (- rot angle)) (Math/sqrt hitdist))
+            ht (Math/round (/ view-dist d))
+            wd (* ht ray-width)
+            top (Math/round (/ (- screen-height ht) 2))
+            tx (Math/round (* xtx wd))
+            bar (nth bars num)]
+        (doto (.-style bar)
+          (aset "height" (str ht "px"))
+          (aset "top" (str top "px")))
+        (doto (.-style (.-img bar))
+          (aset "height" (str ht "px"))
+          (aset "width" (str (* wd 2) "px"))
+          (aset "top" "0px")
+          (aset "left" (str (- (if (< tx (- wd ray-width)) (- wd ray-width) tx)) "px")))))))
 
 (defn cast-rays
-  [{{:keys [rot] :as player} :player :as game-state} canvas]
-  (clear canvas)
+  [{{:keys [rot] :as player} :player :as game-state}]
   (dotimes [i rays]
     (let [scrpos (* ray-width (+ i (/ rays -2)))
           vdist (Math/sqrt (hypot scrpos view-dist))]
-      (cast-ray game-state (+ rot (Math/asin (/ scrpos vdist))) canvas))))
+      (cast-ray game-state (+ rot (Math/asin (/ scrpos vdist))) i))))
 
 (defn tick [game input]
   (-> game (move-player input)))
 
 (defn game-loop []
   (swap! game tick @input)
-  (cast-rays @game ent-canvas)
+  (cast-rays @game screen)
   (when-not (:escape @input)
     (wait (/ 1000 30) game-loop)))
 
@@ -179,7 +182,7 @@
 
 (start-listening)
 (reset! game (new-game))
-(draw-map (:level @game) map-canvas)
+
 (wait (/ 1000 30) game-loop)
 
 

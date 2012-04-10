@@ -56,7 +56,7 @@ html, canvas, img {
 }
 body {
   width: 720px;
-  background-color: #242424;
+  background-color: #000;
   margin: auto;
   margin-top: 100px;
 }
