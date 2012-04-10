@@ -7,30 +7,34 @@
 ; (repl/connect "http://localhost:9000/repl")
 
 (def input (atom #{}))
-;(def player (atom nil))
 (def game (atom nil))
+
 (def pi Math/PI)
 (def two-pi  (* pi 2))
 (def half-pi (/ pi 2))
+
 (def screen-width 720)
 (def screen-height 480)
+
 (defn hypot [x y] (+ (* x x) (* y y)))
+
 (defn ensure-circ [angle]
   (cond (or (== angle 0) (== angle two-pi)) 0
         (> two-pi angle 0) angle
         (> angle two-pi) (recur (- angle two-pi))
         (> 0 angle) (recur (+ angle two-pi))
         :else (throw "huh?")))
+
 (defn up-right [angle]
   (let [a (ensure-circ angle)]
     (cond (<= 0 a half-pi) [true true]
           (<= half-pi a pi) [true false]
           (<= pi a (* 3 half-pi)) [false false]
           :else [false true])))
-(defn wait [ms func] (js* "setTimeout(~{func}, ~{ms})"))
 
+(defn wait [ms func] (js* "setTimeout(~{func}, ~{ms})"))
 (def screen (.getElementById js/document "screen"))
-(def ray-width 16)
+(def ray-width 4)
 (def fov (* 60 (/ Math/PI 180)))
 (def rays (Math/ceil (/ screen-width ray-width)))
 (def view-dist (/ (/ screen-width 2) (Math/tan (/ fov 2))))
@@ -42,12 +46,12 @@
           (doto (.-style d)
             (aset "position" "absolute")
             (aset "left" (str i "px"))
-            (aset "width" (str ray-width "px"))
+            (aset "width" (str (inc ray-width) "px"))
             (aset "overflow" "hidden"))
           (doto (.-style img)
             (aset "position" "absolute")
             (aset "left" "0px"))
-          (set! (.-src img) "res/wall.png")
+          (set! (.-src img) "res/wall3.png")
           (set! (.-img d) img)
           (.appendChild d img)
           (.appendChild screen d)
@@ -124,31 +128,35 @@
             (if-not (and (< 0 x w) (< 0 y h)) [x y 0 0] ; getting absurd...
                     (let [wx (Math/floor (+ dwx x)), wy (Math/floor (+ dwy y))]
                       (if (pos? (nth (nth data wy) wx))
-                        [x y (hypot (- x px) (- y py)) (nth (nth data wy) wx)]
+                        [x
+                         y
+                         (hypot (- x px) (- y py))
+                         (nth (nth data wy) wx)
+                         (mod x 1)
+                         (mod y 1)]
                         (recur (+ x dx) (+ y dy)))))))
         [up? right?] (up-right angle)
         slope (Math/tan angle)
         x (if right? (Math/ceil px) (Math/floor px))
-        [xhit1 yhit1 hitdist1 wall1 :as hit1]
+        [xhit1 yhit1 hitdist1 wall1 _ xtxt1 :as hit1]
         (cast-out x (+ py (* (- x px) slope))
                   (if right? 1 -1) (* (if right? 1 -1) slope)
                   (if right? 0 -1) 0)
         y (if up? (Math/ceil py) (Math/floor py))
-        [xhit2 yhit2 hitdist2 wall2 :as hit2]
+        [xhit2 yhit2 hitdist2 wall2 xtxt2 _ :as hit2]
         (cast-out (+ px (/ (- y py) slope)) y
                   (/ (if up? 1 -1) slope) (if up? 1 -1)
                   0 (if up? 0 -1))
-        [xhit yhit hitdist wall horiz xtx]
-        (if (or (zero? hitdist1) (and (pos? hitdist2) (< hitdist2 hitdist1)))
-          (conj hit2 (if up? 1 0) false (mod yhit2 1))
-          (conj hit1 (if right? 1 0)) true (mod xhit1 1))]
+        vert? (or (zero? hitdist1) (and (pos? hitdist2) (< hitdist2 hitdist1)))
+        xtxt (if vert? xtxt2 xtxt1)
+        [xhit yhit hitdist wall xtxt3] (if vert? hit2 hit1)]
     (when-not (zero? hitdist)
       (let [s (nth bars num)
             d (* (Math/cos (- rot angle)) (Math/sqrt hitdist))
             ht (Math/round (/ view-dist d))
             wd (* ht ray-width)
             top (Math/round (/ (- screen-height ht) 2))
-            tx (Math/round (* xtx wd))
+            tx (* xtxt wd)
             bar (nth bars num)]
         (doto (.-style bar)
           (aset "height" (str ht "px"))
@@ -157,7 +165,10 @@
           (aset "height" (str ht "px"))
           (aset "width" (str (* wd 2) "px"))
           (aset "top" "0px")
-          (aset "left" (str (- (if (< tx (- wd ray-width)) (- wd ray-width) tx)) "px")))))))
+          (aset "left" (str (- (when true;(> tx (- wd ray-width))
+                                 ;(- wd ray-width)
+                                 tx))
+                            "px")))))))
 
 (defn cast-rays
   [{{:keys [rot] :as player} :player :as game-state}]
@@ -166,8 +177,7 @@
           vdist (Math/sqrt (hypot scrpos view-dist))]
       (cast-ray game-state (+ rot (Math/asin (/ scrpos vdist))) i))))
 
-(defn tick [game input]
-  (-> game (move-player input)))
+(defn tick [game input] (-> game (move-player input)))
 
 (defn game-loop []
   (swap! game tick @input)
@@ -184,6 +194,3 @@
 (reset! game (new-game))
 
 (wait (/ 1000 30) game-loop)
-
-
-
