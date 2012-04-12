@@ -74,7 +74,7 @@
 (def ent-canv (.getElementById js/document "ent"))
 
 (defn show-fps [fps] (set! (.-innerHTML fps-elem) (str (/ (Math/floor (* fps 100)) 100) " fps")))
-(def ray-width 8)
+(def ray-width 10)
 (def fov (* 60 (/ Math/PI 180)))
 (def rays (Math/ceil (/ screen-width ray-width)))
 (def view-dist (/ (/ screen-width 2) (Math/tan (/ fov 2))))
@@ -162,7 +162,7 @@
 
 (def decode {27 :escape, 38 :up, 40 :down, 37 :left, 39 :right})
 
-(defn cast-rays ; enormous graphics code blob
+(defn render ; big ol' graphics code blob
   [{{px :x py :y rot :rot :as player} :player
     {:keys [w h data]} :level
     :as game-state}]
@@ -244,7 +244,7 @@
                      (if (< 0 n) (recur (dec n) (tick g @input))
                          g)))
       (reset! last-tick (.getTime (js/Date.)))
-      (cast-rays @game screen)
+      (render @game screen)
       (draw-ents @game ent-canv)
       (animate game-loop))))
 
