@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>argh!</title>
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -10,11 +10,13 @@
       <div id="floor"></div>
       <div id="ceiling"></div>
     </div>
-    <span id="fps"></span>
-<!--    <div style="width: 720px; height: 480px;">
-      <canvas width="720" height="480" id="map" style="position: absolute"></canvas>
-      <canvas width="720" height="480" id="entities" style="position: absolute"></canvas>
-    </div>-->
+    <div id="minimap" style="width:240px;height:240px">
+      <canvas id="ent" width="240" height="240"
+      style="position:absolute;z-index:100;"></canvas>
+      <canvas id="map" width="240" height="240"
+      style="position:absolute;z-index:-1;"></canvas>
+    </div>
+    <span id="fps"></span>    
     <script src="main.js"></script>
   </body>
 </html>

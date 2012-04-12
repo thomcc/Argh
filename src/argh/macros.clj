@@ -1,27 +1,30 @@
 (ns argh.macros)
+;; silly, but whatever.
 
+(defmacro do-transform
+  [c & forms]
+  `(doto ~c
+     (.save)
+     ~@forms
+     (.restore)))
 
-(defmacro with-path
+(defmacro do-path
   [c & forms]
   `(doto ~c
      (.beginPath)
      ~@forms
      (.closePath)))
 
-(comment
- (defmacro doset
-   [x & forms]
-   (let [gx (gensym)]
-     `(let [~gx ~x]
-        ~@(map (fn [f]
-                 (let [prop (symbol (str "-" (first f)))]
-                   `(set! (. ~gx ~prop) (second f))))
-               forms)
-        ~gx))))
+(defmacro with-transform
+  [c & forms]
+  `(let [c# ~c]
+     (.save c#)
+     ~@forms
+     (.restore c#)))
 
-(comment
-  (doset (.createElement js/document "div")
-    (id "foo")
-    (class "frob grovel quux")
-    (width "500px"))
-  )
+(defmacro with-path
+  [c & forms]
+  `(let [c# ~c]
+     (.beginPath c#)
+     ~@forms
+     (.closePath c#)))
