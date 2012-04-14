@@ -28,3 +28,9 @@
      (.beginPath c#)
      ~@forms
      (.closePath c#)))
+
+(defmacro for-loop [[binding pred adv] & body]
+  `(loop [~@binding]
+     (when ~pred
+       ~@body
+       (recur ~adv))))
