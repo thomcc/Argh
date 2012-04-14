@@ -41,7 +41,7 @@
     stroke))
 
 (def pi Math/PI)
-(def two-pi  (* pi 2))
+(def two-pi (* pi 2))
 (def half-pi (/ pi 2))
 (def goal-fps 60)
 (def screen-width 720)
@@ -57,7 +57,7 @@
 
 (defn up-right [angle]
   (let [a (ensure-circ angle)]
-    [(<= 0 a pi) (or (> a (* 0.75 two-pi)) (< a (* two-pi 0.25)))]))
+    [(not (<= 0 a pi)) (or (> a (* 0.75 two-pi)) (< a (* two-pi 0.25)))]))
 
 (def animate
   (or (.-requestAnimationFrame js/window)
@@ -75,8 +75,7 @@
 (defn show-fps [fps] (set! (.-innerHTML fps-elem)
                            (str (/ (Math/floor (* fps 100)) 100) " fps")))
 
-(def ray-width 10)
-
+(def ray-width 8)
 (def fov (* 60 (/ Math/PI 180)))
 (def rays (Math/ceil (/ screen-width ray-width)))
 (def view-dist (/ (/ screen-width 2) (Math/tan (/ fov 2))))
@@ -92,14 +91,16 @@
           (recur (+ i ray-width) (conj s img))))))
 
 (defrecord Player [x y rot move-speed rot-speed])
-(defn create-player [x y] (Player. (+ 0.5 x) (+ 0.5 y) (rand) 0.08 (* 3 (/ pi 180))))
+(defn create-player [x y] (Player. (+ 0.5 x) (+ 0.5 y)
+                                   (rand) 0.08 (* 3 (/ pi 180))))
 (defn spawn-player [{:keys [w h data]}]
   (loop [x (rand-int w), y (rand-int h)]
     (if (== 0 (nth (data y) x)) (create-player x y)
         (recur (rand-int w) (rand-int h)))))
 (defrecord Level [w h data])
 (defn rand-level [w h prob]
-  (Level. w h (vec (repeatedly h (fn [] (vec (repeatedly w #(if (< (rand) prob) 0 1))))))))
+  (Level. w h (vec (repeatedly h (fn [] (vec (repeatedly w #(if (< (rand) prob)
+                                                             0 1))))))))
 
 (defrecord Game [player level])
 
@@ -125,8 +126,10 @@
              (fn [data]
                (reduce (fn [v [x y]] (assoc-in v [y x] 2))
                        data
-                       (concat (mapcat #(vector [0 %] [(dec w) %]) (range h))
-                               (mapcat #(vector [% 0] [% (dec h)]) (range w)))))))
+                       (concat (mapcat #(vector [0 %] [(dec w) %])
+                                       (range h))
+                               (mapcat #(vector [% 0] [% (dec h)])
+                                       (range w)))))))
 
 (defn new-game []
   (let [lvl (new-cave 60 60)]
@@ -142,90 +145,95 @@
     (-> gs (assoc-in [:player :x] (+ dx x)) (assoc-in [:player :y] (+ dy y)))
     gs))
 
+(defn ->num [input pos neg]
+  (cond (input neg) -1
+        (input pos) +1
+        :else 0))
 (defn move-player
-  [{{:keys [x y move-speed rot-speed rot] :as player} :player :as game-state} input]
-  (let [speed (cond (input :down) -1, (input :up) 1, :else 0)
-        dir (cond (input :left) -1, (input :right) 1, :else 0)
-        move-step (* speed move-speed)
-        rot (ensure-circ (+ rot (* dir rot-speed)))]
+  [{{:keys [x y move-speed rot-speed rot]} :player :as game-state} i]
+  (let [dir (->num i :right :left), rot (ensure-circ (+ rot (* dir rot-speed)))
+        mspeed (->num i :up :down), sspeed (->num i :strafer :strafel)
+        m-step (* mspeed move-speed), s-step (* sspeed move-speed)]
     (-> game-state
         (assoc-in [:player :rot] rot)
-        (move* (* move-step (Math/cos rot)) 0)
-        (move* 0 (* move-step (Math/sin rot))))))
+        (move* (- (* m-step (Math/cos rot)) (* s-step (Math/sin rot))) 0)
+        (move* 0 (+ (* m-step (Math/sin rot)) (* s-step (Math/cos rot)))))))
 
-(def decode {27 :escape, 38 :up, 40 :down, 37 :left, 39 :right})
-;; return type of cast-out.  this program is hacked together so
-;; it needs this many :/
+(def decode {27 :escape, 38 :up, 40 :down, 37 :left, 39 :right
+             65 :strafel 68 :strafer, 87 :up, 83 :down})
+
+; disgusting hacky hack.  cast-out, an inner function in render needs
+; to return all of these things, so they're wrapped in Ray.
 (defrecord Ray [xh yh wx wy dist])
 
 (defn render ; big ol' graphics code blob
   [{{px :x py :y rot :rot :as player} :player
-    {:keys [w h data]} :level
-    :as game-state}]
+    {:keys [w h data]} :level :as game-state}]
   (clear ent-canv)
   (dotimes [num rays]
     (let [scrpos (* ray-width (+ num (/ rays -2)))
           vdist (Math/sqrt (hypot scrpos view-dist))
           angle (+ rot (Math/asin (/ scrpos vdist)))
-          cast-out
-          (fn [x y, dx dy, dwx dwy]
-            (loop [x x, y y]
-              (if-not (and (< 0 x w) (< 0 y h)) (Ray. 0 0 0 0 0)
-                      (let [wx (Math/floor (+ dwx x)), wy (Math/floor (+ dwy y))]
-                        (if (pos? (nth (nth data wy) wx))
-                          (Ray. x y wx wy (hypot (- x px) (- y py)))
-                          (recur (+ x dx) (+ y dy)))))))
+          cast-out (fn [x y, dx dy, dwx dwy]
+                     (loop [x x, y y]
+                       (if-not (and (< 0 x w) (< 0 y h)) (Ray. 0 0 0 0 0)
+                               (let [wx (Math/floor (+ dwx x))
+                                     wy (Math/floor (+ dwy y))]
+                                 (if (pos? (nth (nth data wy) wx))
+                                   (Ray. x y wx wy (hypot (- x px) (- y py)))
+                                   (recur (+ x dx) (+ y dy)))))))
+;          up? (not (<= 0 angle pi))
+;          right? (not (<= (* two-pi 0.25) angle (* 0.75 two-pi)))
           [up? right?] (up-right angle)
           slope (Math/tan angle)
           x (if right? (Math/ceil px) (Math/floor px))
-          {dist1 :dist xtex1 :yh :as hit1}
-          (cast-out x
-                    (+ py (* (- x px) slope))
-                    (if right? 1 -1)
-                    (* (if right? 1 -1) slope)
-                    (if right? 0 -1)
-                    0)
-          xtex1 (if-not right? (mod xtex1 1) (- 1 (mod xtex1 1)))
-          y (if up? (Math/ceil py) (Math/floor py))
-          {dist2 :dist xtex2 :xh :as hit2}
-          (cast-out (+ px (/ (- y py) slope))
-                    y
-                    (/ (if up? 1 -1) slope)
-                    (if up? 1 -1)
-                    0
-                    (if up? 0 -1))
+          {dist1 :dist xtex1 :yh :as hit1} (cast-out x
+                                                     (+ py (* (- x px) slope))
+                                                     (if right? 1 -1)
+                                                     (* (if right? 1 -1) slope)
+                                                     (if right? 0 -1)
+                                                     0)
+          xtex1 (if right? (mod xtex1 1) (- 1 (mod xtex1 1)))
+          y (if up? (Math/floor py) (Math/ceil py))
+          {dist2 :dist xtex2 :xh :as hit2} (cast-out (+ px (/ (- y py) slope))
+                                                     y
+                                                     (/ (if up? -1 1) slope)
+                                                     (if up? -1 1)
+                                                     0
+                                                     (if up? -1 0))
           xtex2 (if up? (- 1 (mod xtex2 1)) (mod xtex2 1))
           vert? (or (zero? dist1) (and (pos? dist2) (< dist2 dist1)))
-          xtxt (if vert? xtex1 xtex2)
-          {:keys [xh yh wx wy dist]} (if vert? hit2 hit1)
-          ;; wall (nth (data wy) wx)
-          ]
+          xtxt (if vert? xtex2 xtex1)
+          {:keys [xh yh wx wy dist]} (if vert? hit2 hit1)]
       (when-not (zero? dist)
         (doto (context ent-canv)
-          (draw-line (if vert? "red" "green") (* 4 px) (* 4 py) (* 4 xh) (* 4 yh)))
+          (draw-line (if vert? "red" "green")
+                     (* 4 px) (* 4 py) (* 4 xh) (* 4 yh)))
         (let [bar (nth bars num)
               dist (* (Math/sqrt dist) (Math/cos (- rot angle)))
               height (Math/round (/ view-dist dist))
-              width (* height (inc ray-width))
+              width (* height ray-width)
               style-top (Math/round (/ (- screen-height height) 2))
-              style-height (bit-shift-right height 0)
+              style-height (Math/floor height)
               texx (Math/round (* xtxt (* height ray-width)))
-              style-width (bit-shift-right (* width 2) 0)
+              style-width (Math/floor (* width 2))
               style-left (- (* num ray-width) texx)
-              z-index (bit-shift-right (- (* 1000 (hypot (- px xh) (- py yh)))) 0)
-              style-clip (str "rect(0px, " (+ (inc ray-width) texx) "px, "
-                              height "px, " texx "px)")
+              z-index (Math/floor (- (* 1000 (hypot (- px xh) (- py yh)))))
+              style-clip (.join (array "rect(0px, " (+ (inc ray-width) texx)
+                                       "px, " height "px, " texx "px)") "")
               style (.-style bar)]
-          (set! style.height (str style-height "px"))
-          (set! style.width (str style-width "px"))
-          (set! style.top (str style-top "px"))
-          (set! style.left (str style-left "px"))
+          (set! style.height (.join (array style-height "px") ""))
+          (set! style.width (.join (array (inc style-width) "px") ""))
+          (set! style.top (.join (array style-top "px") ""))
+          (set! style.left (.join (array style-left "px") ""))
           (set! style.clip style-clip)
           (set! style.zIndex z-index))))))
 
 
-(defn draw-minimap [{{px :x py :y r :rot} :player {:keys [w h data]} :level} cvs]
-  (let [ctx (context cvs), scale (min (/ (.-width cvs) w) (/ (.-height cvs) h))]
+(defn draw-minimap
+  [{{px :x py :y r :rot} :player {:keys [w h data]} :level} cvs]
+  (let [ctx (context cvs)
+        scale (min (/ (.-width cvs) w) (/ (.-height cvs) h))]
     (clear cvs "white")
     (dotimes [j h]
       (let [row (nth data j)]
@@ -259,7 +267,10 @@
       (animate game-loop))))
 
 (defn start-listening []
-  (let [on-key #(fn [e] (swap! input % (decode (.-keyCode e))) (.preventDefault e))]
+  (let [on-key #(fn [e]
+;                  (.log js/console e)
+                  (swap! input % (decode (.-keyCode e)))
+                  (.preventDefault e))]
     (set! (.-onkeydown js/document) (on-key conj))
     (set! (.-onkeyup js/document) (on-key disj))))
 
