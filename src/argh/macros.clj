@@ -1,5 +1,4 @@
 (ns argh.macros)
-;; silly, but whatever.
 
 (defmacro do-transform
   [c & forms]
@@ -34,3 +33,10 @@
      (when ~pred
        ~@body
        (recur ~adv))))
+
+;; unnecessary, but goddamn does it make some things more readable
+
+(defmacro grid-set [g x y v]
+  (list 'js* "(~{}[~{}][~{}] = ~{})" g y x v))
+
+(defmacro grid-get [g x y] `(aget ~g ~y ~x))

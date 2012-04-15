@@ -38,6 +38,7 @@ caption, th, td {
   font-weight: normal;
   float:none !important;
 }
+
 table, th, td {
   vertical-align: middle;
 }
@@ -55,7 +56,6 @@ html, canvas, img {
   image-rendering: -webkit-optimize-contrast;
 }
 body {
-  width: 640px;
   background-color: #666;
   margin: auto;
   margin-top: 100px;
@@ -63,6 +63,14 @@ body {
 #screen {
   width: 640px;
   height: 480px;
+  margin: auto;
   border: 1px solid black;
 }
+
+
+
+
+
+
+
 
