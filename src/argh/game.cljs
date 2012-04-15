@@ -1,11 +1,11 @@
 (ns argh.game
   (:use [argh.level :only [new-cave open-pos]]))
 
-(defrecord Player [x y rot xacc yacc rotacc])
+(defrecord Player [x y z rot xacc yacc rotacc walk walkphase])
 
 (defn spawn-player [level]
   (let [[x y] (open-pos level)]
-    (Player. (+ x 0.5) (+ y 0.5) (rand) 0 0 0)))
+    (Player. (+ x 0.5) (+ y 0.5) 0 (rand) 0 0 0 0 0)))
 
 (defrecord Game [player level])
 
@@ -44,15 +44,18 @@
         :else 0))
 
 (defn move-player
-  [{{:keys [x y rot] :as player} :player l :level :as game-state} i]
-  (let [dx (->num i :strafel :strafer)
-        dy (->num i :up :down)
+  [{{:keys [x y rot rotacc] :as player} :player l :level :as game-state} i]
+  (let [dx (->num i :strafer :strafel)
+        dy (->num i :down :up)
         d2 (+ (* dx dx) (* dy dy))
         dd (if (pos? d2) (Math/sqrt d2) 1)
         dx (/ dx dd)
         dy (/ dy dd)
         r (* 0.05 (->num i :left :right))
         p (-> player
+              (update-in [:walk] * 0.6)
+              (update-in [:walk] + (Math/sqrt (+ (* dx dx) (* dy dy))))
+              (update-in [:walkphase] + (Math/sqrt (+ (* dx dx) (* dy dy))))
               (update-in [:rotacc] + r)
               (update-in [:xacc] - (* 0.03 (+ (* dx (Math/cos rot))
                                               (* dy (Math/sin rot)))))
@@ -65,7 +68,7 @@
                      (-> player
                          (update-in [:xacc] * 0.6)
                          (update-in [:yacc] * 0.6)
-                         (update-in [:rot] + (get player :rotacc))
+                         (update-in [:rot] + rotacc)
                          (update-in [:rotacc] * 0.4)))))))
 
 (defn tick [game input] (-> game (move-player input)))

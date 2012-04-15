@@ -18,7 +18,8 @@
 (set! screen.width screen-width)
 (set! screen.height screen-height)
 
-(def assets {:wall "res/wall.png"})
+(def assets {:wall "res/wall.png"
+             :test "res/test.png"})
 
 (def debug? true)
 

@@ -13,7 +13,8 @@
 
 (defn render ; big ol' graphics code blob
   ;; todo: make less of a mess.
-  [{{px :x py :y rot :rot :as player} :player lvl :level :as game-state} screen]
+  [{{px :x py :y pz :z rot :rot wp :walkphase wk :walk :as player} :player
+    lvl :level :as game-state} screen]
   (let [view-width screen.width
         view-height screen.height
         ctx (c/context screen)
@@ -24,6 +25,7 @@
         z-buff-wall (buff (* view-width view-height) 0)
         x-cam (- px (* (Math/cos rot) 0.3))
         y-cam (- py (* (Math/sin rot) 0.3))
+        z-cam (- (* 0.01 wk (Math/sin (* wp 0.4))) pz 0.2)
         x-center (/ view-width 2)
         y-center (/ view-height 3)
         r-cos (Math/cos rot)
@@ -49,16 +51,16 @@
     ;; render the floor
     (dotimes [y view-height]
       (let [yd (/ (- (+ y 0.5) y-center) fov)
-            ceil? (pos? yd)
+            ceil? (neg? yd)
             row (* y view-width)
-            zd (if ceil? (/ 4 (- yd)) (/ 4 yd))]
+            zd (if ceil? (/ (+ 4 (* 8 z-cam)) (- yd)) (/ (- 4 (* z-cam 8)) yd))]
        (dotimes [x view-width]
          (when (> (aget z-buff (+ x row)) zd)
            (let [xd (* zd (/ (- x-center x) fov))
                  xx (+ (* xd r-cos) (* zd r-sin) (* 8 (+ 0.5 x-cam)))
                  yy (+ (* zd r-cos) (* xd r-sin -1) (* 8 (+ 0.5 y-cam)))
-                 xpix (bit-shift-left xx 1)
-                 ypix (bit-shift-left yy 1)
+                 xpix (* 2 xx)
+                 ypix (* 2 yy)
                  xt (bit-shift-right xpix 4)
                  yt (bit-shift-right ypix 4)
                  ;;TODO:  block (lvl xt yt)
