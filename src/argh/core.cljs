@@ -24,6 +24,6 @@
              :floor "res/wallnew.png"})
 
 
-(def debug? true)
+(def debug? false)
 
 (set! *print-fn* #(.log js/console %))
