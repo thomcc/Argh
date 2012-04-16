@@ -43,6 +43,7 @@
         :else 0))
 
 
+(def step-snd (.getElementById js/document "step"))
 
 (defn move-player
   [{{:keys [x y rot rotacc] :as player} :player l :level :as game-state} i]
@@ -74,7 +75,8 @@
                              (update-in [:rot] + rotacc)
                              (update-in [:rotacc] * 0.4)))))]
     (when (> move 0.7)
-      (.play (.getElementById js/document "step")))
+      (.play step-snd; (.getElementById js/document "step")
+       ))
     gs-now))
 
 (defn tick [game input] (-> game (move-player input)))

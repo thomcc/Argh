@@ -48,9 +48,9 @@
 ;(derive ::webkit-sound ::sound)
 
 
-(defmethod loaded ::sound [which name snd]
-  (load-complete name #(do (set! snd.currentTime 0)
-                           (.play snd))))
+;; (defmethod loaded ::sound [which name snd]
+;;   (load-complete name #(do (set! snd.currentTime 0)
+;;                            (.play snd))))
 
 (defmulti load
   (fn [_ item]
@@ -68,11 +68,11 @@
     (set! img.src item)
     (set! img.onload #(loaded :image name img))))
 
-(defmethod load :sound [name item]
-  (let [snd (js/Audio. item)]
-    ;; eh it should at least work for chrome this way
-    (loaded ::sound snd)
-    ))
+;; (defmethod load :sound [name item]
+;;   (let [snd (js/Audio. item)]
+;;     ;; eh it should at least work for chrome this way
+;;     (loaded ::sound )
+;;     ))
 
 (defn load-assets [assets]
   (doseq [[key asset] assets]
