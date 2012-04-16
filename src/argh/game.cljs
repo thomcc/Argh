@@ -5,7 +5,7 @@
 
 (defn spawn-player [level]
   (let [[x y] (open-pos level)]
-    (Player. (+ x 0.5) (+ y 0.5) 0 (rand) 0 0 0 0 0)))
+    (Player. x y 0 (rand) 0 0 0 0 0)))
 
 (defrecord Game [player level])
 

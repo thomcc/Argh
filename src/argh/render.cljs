@@ -14,9 +14,6 @@
       (aset b i init))
     b))
 
-(def sky []
-  )
-
 (defn- lerp [p t0 t1] (+ t0 (* p (- t1 t0))))
 
 (defn render ;; todo: make less of a horryifying monolithic mess
@@ -25,8 +22,8 @@
   (let [view-width screen.width
         view-height screen.height
         ctx (c/context screen)
-        floor (.-data (c/data (get-asset :test))) ; todo: art for floor
-        wall (.-data (c/data (get-asset :test)))
+        floor (.-data (c/data (get-asset :test2))) ; todo: art for floor
+        wall (.-data (c/data (get-asset :test2)))
         idata (c/data screen); (.getImageData ctx 0 0 view-width view-height)
         pixels idata.data
         z-buff (buff (* view-width view-height) 10000)
@@ -39,7 +36,6 @@
         r-cos (Math/cos rot)
         r-sin (Math/sin rot)
         fov view-height
-        r 6
         xcent (Math/floor x-cam)
         zcent (Math/floor y-cam)
         render-wall
@@ -104,20 +100,14 @@
                                 (aset pixels (+ 2 pst) (aget wall (+ 2 tst)))
                                 (aset pixels (+ 3 pst) 255)))))))))))))]
     ;; render the walls
-    (for-loop [(zb (- zcent r)) (<= zb (+ zcent r)) (inc zb)]
-      (for-loop [(xb (- xcent r)) (<= xb (+ xcent r)) (inc xb)]
-        (let [c (lvl xb zb)
-              e (lvl (inc xb) zb)
-              s (lvl xb (inc zb))]
+    (for-loop [(zb (- zcent 6)) (<= zb (+ zcent 6)) (inc zb)]
+      (for-loop [(xb (- xcent 6)) (<= xb (+ xcent 6)) (inc xb)]
+        (let [e (lvl (inc xb) zb), s (lvl xb (inc zb))]
           (if (pos? (lvl xb zb))
-            (do (when-not (pos? e);(pos? (lvl (inc xb) zb))
-                  (render-wall (inc xb) (inc zb) (inc xb) zb))
-                (when-not (pos? s) ;(pos? (lvl xb (inc zb)))
-                  (render-wall xb (inc zb) (inc xb) (inc zb))))
-            (do (when (pos? e) ;(pos? (lvl (inc xb) zb))
-                  (render-wall (inc xb) zb (inc xb) (inc zb)))
-                (when (pos? s); (pos? (lvl xb (inc zb)))
-                  (render-wall (inc xb) (inc zb) xb (inc zb))))))))
+            (do (when-not (pos? e) (render-wall (inc xb) (inc zb) (inc xb) zb))
+                (when-not (pos? s) (render-wall xb (inc zb) (inc xb) (inc zb))))
+            (do (when (pos? e) (render-wall (inc xb) zb (inc xb) (inc zb)))
+                (when (pos? s) (render-wall (inc xb) (inc zb) xb (inc zb))))))))
     ;; render the floor
     (dotimes [y view-height]
       (let [yd (/ (- (+ y 0.5) y-center) fov)
@@ -137,8 +127,7 @@
              (if (pos? block)
                (aset (+ x row) z-buff -1)
                (let [pix-start (* 4 (+ x row))
-                     tex-start (* 4 (+ (bit-and xpix 15)
-                                       (* 16 (bit-and ypix 15))))]
+                     tex-start (* 4 (+ (bit-and xpix 15) (* 16 (bit-and ypix 15))))]
                  (aset z-buff (+ x row) zd)
                  (aset pixels pix-start (aget floor tex-start))
                  (aset pixels (+ 1 pix-start) (aget floor (+ 1 tex-start)))

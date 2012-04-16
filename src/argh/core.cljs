@@ -19,7 +19,8 @@
 (set! screen.height screen-height)
 
 (def assets {:wall "res/wall.png"
-             :test "res/test.png"})
+             :test "res/test.png"
+             :test2 "res/testgrad.png"})
 
 (def debug? true)
 

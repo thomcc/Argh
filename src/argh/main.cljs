@@ -35,7 +35,7 @@
                        (recur (dec n) (tick g in))
                        g)))
       (reset! last-tick (.getTime (js/Date.)))
-      (c/clear draw-cvs)
+      (c/clear draw-cvs "black")
       (c/animate game-loop)
       (screen/render @game draw-cvs)
       (c/draw-on screen draw-cvs))))
