@@ -15,7 +15,6 @@
     b))
 
 (defn- lerp [p t0 t1] (+ t0 (* p (- t1 t0))))
-
 (defn render ;; todo: make less of a horryifying monolithic mess
   [{{px :x py :y pz :z rot :rot wp :walkphase wk :walk :as player} :player
     lvl :level :as game-state} screen]
@@ -33,45 +32,34 @@
         z-cam (- (* 0.01 wk (Math/sin (* wp 0.4))) pz 0.2)
         x-center (/ view-width 2)
         y-center (/ view-height 3)
-        r-cos (Math/cos rot)
-        r-sin (Math/sin rot)
-        fov view-height
+        r-cos (Math/cos rot), r-sin (Math/sin rot)
         xcent (Math/floor x-cam)
         zcent (Math/floor y-cam)
         render-wall
         (fn [x0 y0 x1 y1]
-          (let [xc0 (* 2 (- x0 0.5 x-cam))
-                yc0 (* 2 (- y0 0.5 y-cam))
-                xx0 (- (* xc0 r-cos) (* yc0 r-sin))
-                u0 (* 2 (- -0.5 z-cam))
-                l0 (* 2 (- +0.5 z-cam))
-                zz0 (+ (* yc0 r-cos) (* xc0 r-sin))
-                xc1 (* 2 (- x1 0.5 x-cam))
-                yc1 (* 2 (- y1 0.5 y-cam))
-                xx1 (- (* xc1 r-cos) (* yc1 r-sin))
-                u1 (* 2 (- -0.5 z-cam))
-                l1 (* 2 (- +0.5 z-cam))
-                zz1 (+ (* yc1 r-cos) (* xc1 r-sin))
-                zc 0.2]
-            (when-not (and (< zz0 zc) (< zz1 zc))
-              (let [change-0s? (< zz0 zc)
-                    change-1s? (< zz1 zc)
-                    p (/ (- zc zz0) (- zz1 zz0))
-                    xx0 (if change-0s? (lerp p xx0 xx1) xx0)
-                    xx1 (if change-1s? (lerp p xx0 xx1) xx1)
-                    zz0 (if change-0s? (lerp p zz0 zz1) zz0)
-                    zz1 (if change-1s? (lerp p zz0 zz1) zz1)
-                    xt0 (if change-0s? (lerp p 0 16) 0)
-                    xt1 (if change-1s? (lerp p 0 16) 16)
-                    x-pixel0 (- x-center (-> xx0 (/ zz0) (* fov)))
-                    x-pixel1 (- x-center (-> xx1 (/ zz1) (* fov)))]
+          (let [u (* 2 (- -0.5 z-cam)),              l (* 2 (- +0.5 z-cam))
+                xc0 (* 2 (- x0 0.5 x-cam)),          yc0 (* 2 (- y0 0.5 y-cam))
+                xc1 (* 2 (- x1 0.5 x-cam)),          yc1 (* 2 (- y1 0.5 y-cam))
+                xx0 (- (* xc0 r-cos) (* yc0 r-sin)), zz0 (+ (* yc0 r-cos) (* xc0 r-sin))
+                xx1 (- (* xc1 r-cos) (* yc1 r-sin)), zz1 (+ (* yc1 r-cos) (* xc1 r-sin))]
+            (when-not (and (< zz0 0.2) (< zz1 0.2))
+              (let [incr-0s? (< zz0 0.2), decr-1s? (< zz1 0.2)
+                    p (/ (- 0.2 zz0) (- zz1 zz0))
+                    xx0 (if incr-0s? (lerp p xx0 xx1) xx0)
+                    xx1 (if decr-1s? (lerp p xx0 xx1) xx1)
+                    zz0 (if incr-0s? (lerp p zz0 zz1) zz0)
+                    zz1 (if decr-1s? (lerp p zz0 zz1) zz1)
+                    xt0 (if incr-0s? (lerp p 0 16) 0)
+                    xt1 (if decr-1s? (lerp p 0 16) 16)
+                    x-pixel0 (- x-center (-> xx0 (/ zz0) (* view-height)))
+                    x-pixel1 (- x-center (-> xx1 (/ zz1) (* view-height)))]
                 (when (< x-pixel0 x-pixel1)
                   (let [xp0 (max 0 (Math/ceil x-pixel0))
                         xp1 (min view-width (Math/ceil x-pixel1))
-                        y-pixel00 (-> u0 (/ zz0) (* fov) (+ y-center))
-                        y-pixel01 (-> l0 (/ zz0) (* fov) (+ y-center))
-                        y-pixel10 (-> u0 (/ zz1) (* fov) (+ y-center))
-                        y-pixel11 (-> l0 (/ zz1) (* fov) (+ y-center))
+                        y-pixel00 (-> u (/ zz0) (* view-height) (+ y-center))
+                        y-pixel01 (-> l (/ zz0) (* view-height) (+ y-center))
+                        y-pixel10 (-> u (/ zz1) (* view-height) (+ y-center))
+                        y-pixel11 (-> l (/ zz1) (* view-height) (+ y-center))
                         iz0 (/ zz0)
                         iz1 (/ zz1)
                         iza (- iz1 iz0)
@@ -111,13 +99,13 @@
                 (when (pos? s) (render-wall (inc xb) (inc zb) xb (inc zb))))))))
     ;; render the floor
     (dotimes [y view-height]
-      (let [yd (/ (- (+ y 0.5) y-center) fov)
+      (let [yd (/ (- (+ y 0.5) y-center) view-height)
             ceil? (neg? yd)
             row (* y view-width)
             zd (if ceil? (/ (+ 4 (* 8 z-cam)) (- yd)) (/ (- 4 (* z-cam 8)) yd))]
        (dotimes [x view-width]
          (when (> (aget z-buff (+ x row)) zd)
-           (let [xd (* zd (/ (- x-center x) fov))
+           (let [xd (* zd (/ (- x-center x) view-height))
                  xx (+ (* xd r-cos) (* zd r-sin) (* 8 (+ 0.5 x-cam)))
                  yy (+ (* zd r-cos) (* xd r-sin -1) (* 8 (+ 0.5 y-cam)))
                  xpix (* 2 xx)
