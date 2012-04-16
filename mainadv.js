@@ -3402,7 +3402,7 @@ var ee = W(["\ufdd0'wall", "\ufdd0'test", "\ufdd0'test2", "\ufdd0'floor"], {"\uf
 };
 var fe = Y.h(dd([])), ge = Y.h(W([], {})), he = Y.h(l);
 function ie() {
-  return u(H(Z(he))) ? (u(h) && sd("couldn't load everything... gonna go for it regardless"), ud(he, h), vd.a(fe, jb), ae.call(i, de, "\ufdd0'loaded")) : u(h) ? sd("Assets loaded successfully") : i
+  return u(H(Z(he))) ? (u(l) && sd("couldn't load everything... gonna go for it regardless"), ud(he, h), vd.a(fe, jb), ae.call(i, de, "\ufdd0'loaded")) : u(l) ? sd("Assets loaded successfully") : i
 }
 var je = function() {
   var a = Y.h(W([], {})), b = Y.h(W([], {})), d = Y.h(W([], {})), e = Y.h(W([], {})), f = M.c(W([], {}), "\ufdd0'hierarchy", wd);
@@ -3421,7 +3421,7 @@ var je = function() {
   }(), "\ufdd0'default", f, a, b, d, e)
 }();
 Gd(je, "\ufdd0'default", function(a, b, d) {
-  return u(h) ? (sd(O("Don't know what to do with ", a, ", ", b, ".")), rd(d)) : i
+  return u(l) ? (sd(O("Don't know what to do with ", a, ", ", b, ".")), rd(d)) : i
 });
 Gd(je, "\ufdd0'image", function(a, b, d) {
   var a = document.createElement(ed("\ufdd0'canvas")), e = d.width, f = d.height;
@@ -3440,7 +3440,7 @@ var ke = function() {
   }, "\ufdd0'default", f, a, b, d, e)
 }();
 Gd(ke, "\ufdd0'default", function(a, b) {
-  return u(h) ? sd(O("Don't know how to load ", a, " from url ", b)) : i
+  return u(l) ? sd(O("Don't know how to load ", a, " from url ", b)) : i
 });
 Gd(ke, "\ufdd0'image", function(a, b) {
   var d = document.createElement(ed("\ufdd0'img"));
@@ -3739,7 +3739,7 @@ function ve(a) {
       break
     }
   }
-  u(h) && (b = Z(f), a = K.c(b, 0, i), b = K.c(b, 1, i), sd(O("Found cave at [", a, ", ", b, "] of size ", Z(g), ".")));
+  u(l) && (b = Z(f), a = K.c(b, 0, i), b = K.c(b, 1, i), sd(O("Found cave at [", a, ", ", b, "] of size ", Z(g), ".")));
   return Z(f)
 }
 var we = function xe(b, d, e, f, g) {
@@ -3898,7 +3898,8 @@ function Be(a, b) {
 function Ce(a, b, d) {
   return u(a.call(i, d)) ? -1 : u(a.call(i, b)) ? 1 : 0
 }
-function De(a, b) {
+var De = document.getElementById("step");
+function Ee(a, b) {
   var d = u(Cb(a)) ? Q.a(Xa, a) : a, e = M.a(d, "\ufdd0'player"), f = u(Cb(e)) ? Q.a(Xa, e) : e, g = M.a(f, "\ufdd0'rotacc"), j = M.a(f, "\ufdd0'rot");
   M.a(f, "\ufdd0'y");
   M.a(f, "\ufdd0'x");
@@ -3906,63 +3907,63 @@ function De(a, b) {
   j))), T(["\ufdd0'yacc"]), Kb, 0.03 * (q * Math.cos.call(i, j) - k * Math.sin.call(i, j))), d = Dc(Cc(d, T(["\ufdd0'player"]), Be(f, e)), T(["\ufdd0'player"]), function(a) {
     return Dc(Dc(Dc(Dc(a, T(["\ufdd0'xacc"]), Lb, 0.6), T(["\ufdd0'yacc"]), Lb, 0.6), T(["\ufdd0'rot"]), Jb, g), T(["\ufdd0'rotacc"]), Lb, 0.4)
   });
-  0.7 < n && document.getElementById("step").play();
+  0.7 < n && De.play();
   return d
 }
-;var Ee = Y.h(dd([])), Fe = Y.h(i), Ge = document.createElement("canvas");
-Ge.width = 160;
-Ge.height = 120;
-var He = Y.h((new Date).getTime()), Je = function Ie() {
-  if(u("\ufdd0'escape".call(i, Z(Ee)))) {
+;var Fe = Y.h(dd([])), Ge = Y.h(i), He = document.createElement("canvas");
+He.width = 160;
+He.height = 120;
+var Ie = Y.h((new Date).getTime()), Ke = function Je() {
+  if(u("\ufdd0'escape".call(i, Z(Fe)))) {
     return i
   }
-  var b = (new Date).getTime(), d = 1E3 / (b - Z(He)), e = 0.06 * (b - Z(He)), f = Z(Ee);
+  var b = (new Date).getTime(), d = 1E3 / (b - Z(Ie)), e = 0.06 * (b - Z(Ie)), f = Z(Fe);
   ce.innerHTML = O(Math.floor.call(i, 100 * d) / 100, " fps");
-  vd.a(Fe, function(b) {
+  vd.a(Ge, function(b) {
     for(var d = e;;) {
       if(0 < d) {
-        d -= 1, b = De(b, f)
+        d -= 1, b = Ee(b, f)
       }else {
         return b
       }
     }
   });
-  ud(He, (new Date).getTime());
-  Md.a(Ge, "black");
-  Nd.call(i, Ie);
-  me.call(i, Z(Fe), Ge);
-  return be.getContext("2d").drawImage(Ge, 0, 0, be.width, be.height)
-}, Ke;
+  ud(Ie, (new Date).getTime());
+  Md.a(He, "black");
+  Nd.call(i, Je);
+  me.call(i, Z(Ge), He);
+  return be.getContext("2d").drawImage(He, 0, 0, be.width, be.height)
+}, Le;
 a: {
-  for(var Le = [65, 68, 37, 38, 39, 40, 83, 87, 27], Me = "\ufdd0'strafel,\ufdd0'strafer,\ufdd0'left,\ufdd0'up,\ufdd0'right,\ufdd0'down,\ufdd0'down,\ufdd0'up,\ufdd0'escape".split(","), Ne = Le.length, Oe = 0, Pe = $c;;) {
-    if(Oe < Ne) {
-      var Qe = Oe + 1, Re = kb.call(i, Pe, Le[Oe], Me[Oe]), Oe = Qe, Pe = Re
+  for(var Me = [65, 68, 37, 38, 39, 40, 83, 87, 27], Ne = "\ufdd0'strafel,\ufdd0'strafer,\ufdd0'left,\ufdd0'up,\ufdd0'right,\ufdd0'down,\ufdd0'down,\ufdd0'up,\ufdd0'escape".split(","), Oe = Me.length, Pe = 0, Qe = $c;;) {
+    if(Pe < Oe) {
+      var Re = Pe + 1, Se = kb.call(i, Qe, Me[Pe], Ne[Pe]), Pe = Re, Qe = Se
     }else {
-      Ke = Pe;
+      Le = Qe;
       break a
     }
   }
-  Ke = void 0
+  Le = void 0
 }
-function Se() {
+function Te() {
   function a(a) {
     return function(d) {
-      vd.c(Ee, a, Ke.call(i, d.keyCode));
+      vd.c(Fe, a, Le.call(i, d.keyCode));
       return d.preventDefault()
     }
   }
   document.onkeydown = a.call(i, ib);
   document.onkeyup = a.call(i, ob)
 }
-function Te(a) {
+function Ue(a) {
   Md.a(be, "black");
   var b = be.getContext("2d");
   b.fillStyle = "white";
   b.font = "30px sans-serif";
   b.fillText(a, (be.width - b.measureText(a).width) / 2, be.height / 2)
 }
-var Ue = Yd.call(i, Rd.call(i), function() {
-  Te("Loading assets...");
+var Ve = Yd.call(i, Rd.call(i), function() {
+  Ue("Loading assets...");
   var a = D(ee);
   if(u(a)) {
     var b = E(a);
@@ -3981,21 +3982,21 @@ var Ue = Yd.call(i, Rd.call(i), function() {
   }
   return setTimeout(ie, 1E3)
 });
-Wd.call(i, de, "\ufdd0'loading", Ue);
-var Ve = Yd.call(i, Rd.call(i), function() {
-  Te("Initializing game...");
-  Te("Binding events...");
-  Se();
-  Te("Generating world...");
+Wd.call(i, de, "\ufdd0'loading", Ve);
+var We = Yd.call(i, Rd.call(i), function() {
+  Ue("Initializing game...");
+  Ue("Binding events...");
+  Te();
+  Ue("Generating world...");
   var a = ue.call(i, 60, 60), b, d = ve.call(i, a);
   b = K.c(d, 0, i);
   d = K.c(d, 1, i);
   b = new ye(b, d, 0, Nb.O(), 0, 0, 0, 0, 0);
-  ud(Fe, new ze(b, a));
-  Te("Starting game loop!");
-  return Nd.call(i, Je)
+  ud(Ge, new ze(b, a));
+  Ue("Starting game loop!");
+  return Nd.call(i, Ke)
 });
-Wd.call(i, de, "\ufdd0'playing", Ve);
+Wd.call(i, de, "\ufdd0'playing", We);
 Xd.call(i, de, "\ufdd0'init", function() {
   return $d.call(i, de, "\ufdd0'loading")
 });
