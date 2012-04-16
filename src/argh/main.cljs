@@ -34,6 +34,10 @@
                      (if (< 0 n)
                        (recur (dec n) (tick g in))
                        g)))
+      ;; (when-not (empty? @input)
+      ;;   (when (zero? (mod current-tick 50))
+      ;;     (when-let [step (.getElementById js/document "step")]
+      ;;       (.play step))))
       (reset! last-tick (.getTime (js/Date.)))
       (c/clear draw-cvs "black")
       (c/animate game-loop)

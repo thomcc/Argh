@@ -9,13 +9,32 @@
 
 (def asset-table (atom {}))
 
-(defn loaded [name thing]
+(def done? (atom false))
+
+(defn load-complete [name thing]
   (swap! asset-table assoc name thing)
   (swap! pending disj name)
   (when (empty? @pending)
+    (reset! done? true)
     (state/trigger page :loaded)))
 
-(defn image-loaded [name img]
+(defn give-up []
+  (if-not @done?
+    (do (when debug?
+          (prn "couldn't load everything... gonna go for it regardless"))
+        (reset! done? true)
+        (swap! pending empty)
+        (state/trigger page :loaded))
+    (when debug? (prn "Assets loaded successfully"))))
+
+(defmulti loaded (fn [kind & _] kind))
+
+(defmethod loaded :default [kind name thing]
+  (when debug?
+    (prn (str "Don't know what to do with " kind ", " name "."))
+    (pr thing)))
+
+(defmethod loaded :image [_ name img]
   (let [cvs (create :canvas)
         w (.-width img)
         h (.-height img)]
@@ -23,27 +42,43 @@
     (set! (.-height cvs) h)
     (let [ctx (.getContext cvs "2d")]
       (.drawImage ctx img 0 0 w h)
-      (loaded name cvs))))
+      (load-complete name cvs))))
 
-(defmulti load ; i hope eventually to have sound.  at least i'd rather
-  (fn [_ item]  ; not rule it out.
+;(derive ::moz-sound ::sound)
+;(derive ::webkit-sound ::sound)
+
+
+(defmethod loaded ::sound [which name snd]
+  (load-complete name #(do (set! snd.currentTime 0)
+                           (.play snd))))
+
+(defmulti load
+  (fn [_ item]
     (condp re-matches item
       (js/RegExp. "(.*)\\.(png|gif|jpe?g)") :image
+;;      (js/RegExp. "(.*)\\.wav") :sound
       :unknown)))
 
 (defmethod load :default [name item]
   (when debug?
     (prn (str "Don't know how to load " name " from url " item))))
 
-(defmethod load :image [name item]
+(defmethod load :image  [name item]
   (let [img (create :img)]
     (set! img.src item)
-    (set! img.onload #(image-loaded name img))))
+    (set! img.onload #(loaded :image name img))))
+
+(defmethod load :sound [name item]
+  (let [snd (js/Audio. item)]
+    ;; eh it should at least work for chrome this way
+    (loaded ::sound snd)
+    ))
 
 (defn load-assets [assets]
   (doseq [[key asset] assets]
     (swap! pending conj key)
-    (load key asset)))
+    (load key asset))
+  (js/setTimeout give-up 1000))
 
 (defn get-asset [name]
   (get @asset-table name))

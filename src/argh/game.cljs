@@ -42,6 +42,8 @@
         (input pos) +1
         :else 0))
 
+
+
 (defn move-player
   [{{:keys [x y rot rotacc] :as player} :player l :level :as game-state} i]
   (let [dx (->num i :strafer :strafel)
@@ -51,23 +53,28 @@
         dx (/ dx dd)
         dy (/ dy dd)
         r (* 0.05 (->num i :left :right))
+        move (Math/sqrt (+ (* dx dx) (* dy dy)))
         p (-> player
               (update-in [:walk] * 0.6)
-              (update-in [:walk] + (Math/sqrt (+ (* dx dx) (* dy dy))))
-              (update-in [:walkphase] + (Math/sqrt (+ (* dx dx) (* dy dy))))
+              (update-in [:walk] + move)
+              (update-in [:walkphase] + move)
               (update-in [:rotacc] + r)
               (update-in [:xacc] - (* 0.03 (+ (* dx (Math/cos rot))
                                               (* dy (Math/sin rot)))))
               (update-in [:yacc] - (* 0.03 (- (* dy (Math/cos rot))
-                                              (* dx (Math/sin rot))))))]
-    (-> game-state
-        (assoc-in [:player] (move* p l))
-        (update-in [:player]
-                   (fn [player]
-                     (-> player
-                         (update-in [:xacc] * 0.6)
-                         (update-in [:yacc] * 0.6)
-                         (update-in [:rot] + rotacc)
-                         (update-in [:rotacc] * 0.4)))))))
+                                              (* dx (Math/sin rot))))))
+        gs-now
+        (-> game-state
+            (assoc-in [:player] (move* p l))
+            (update-in [:player]
+                       (fn [player]
+                         (-> player
+                             (update-in [:xacc] * 0.6)
+                             (update-in [:yacc] * 0.6)
+                             (update-in [:rot] + rotacc)
+                             (update-in [:rotacc] * 0.4)))))]
+    (when (> move 0.7)
+      (.play (.getElementById js/document "step")))
+    gs-now))
 
 (defn tick [game input] (-> game (move-player input)))
