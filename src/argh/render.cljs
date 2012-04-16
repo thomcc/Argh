@@ -25,14 +25,14 @@
   (let [view-width screen.width
         view-height screen.height
         ctx (c/context screen)
-        floor (.-data (c/data (get-asset :wall))) ; todo: art for floor
+        floor (.-data (c/data (get-asset :test))) ; todo: art for floor
         wall (.-data (c/data (get-asset :test)))
         idata (c/data screen); (.getImageData ctx 0 0 view-width view-height)
         pixels idata.data
         z-buff (buff (* view-width view-height) 10000)
         z-buff-wall (buff (* view-width view-height) 0)
-        x-cam (- px (* (Math/cos rot) 0.3))
-        y-cam (- py (* (Math/sin rot) 0.3))
+        x-cam (+ px #_(- (* (Math/cos rot) 0.3)))
+        y-cam (+ py #_(- (* (Math/sin rot) 0.3)))
         z-cam (- (* 0.01 wk (Math/sin (* wp 0.4))) pz 0.2)
         x-center (/ view-width 2)
         y-center (/ view-height 3)
@@ -50,22 +50,23 @@
                 u0 (* 2 (- -0.5 z-cam))
                 l0 (* 2 (- +0.5 z-cam))
                 zz0 (+ (* yc0 r-cos) (* xc0 r-sin))
-                xc1 (* 2 (- x1 0.5 z-cam))
-                yc1 (* 2 (- y1 0.5 z-cam))
+                xc1 (* 2 (- x1 0.5 x-cam))
+                yc1 (* 2 (- y1 0.5 y-cam))
                 xx1 (- (* xc1 r-cos) (* yc1 r-sin))
                 u1 (* 2 (- -0.5 z-cam))
                 l1 (* 2 (- +0.5 z-cam))
                 zz1 (+ (* yc1 r-cos) (* xc1 r-sin))
                 zc 0.2]
             (when-not (and (< zz0 zc) (< zz1 zc))
-              (let [p0 (if (< zz0 zc) (/ (- zc zz0) (- zz1 zz0)) 0)
-                    p1 (if (< zz1 zc) (/ (- zc zz0) (- zz1 zz0)) 1)
-                    xx0 (if (zero? p0) xx0 (lerp p0 xx0 xx1))
-                    xx1 (if (== 1 p1) xx1 (lerp p1 xx0 xx1))
-                    zz0 (if (zero? p0) zz0 (lerp p0 zz0 zz1))
-                    zz1 (if (== 1 p1) zz1 (lerp p1 zz0 zz1))
-                    xt0 (if (zero? p0) 0 (lerp p0 0 16))
-                    xt1 (if (== 1 p1) 16 (lerp p1 0 16))
+              (let [change-0s? (< zz0 zc)
+                    change-1s? (< zz1 zc)
+                    p (/ (- zc zz0) (- zz1 zz0))
+                    xx0 (if change-0s? (lerp p xx0 xx1) xx0)
+                    xx1 (if change-1s? (lerp p xx0 xx1) xx1)
+                    zz0 (if change-0s? (lerp p zz0 zz1) zz0)
+                    zz1 (if change-1s? (lerp p zz0 zz1) zz1)
+                    xt0 (if change-0s? (lerp p 0 16) 0)
+                    xt1 (if change-1s? (lerp p 0 16) 16)
                     x-pixel0 (- x-center (-> xx0 (/ zz0) (* fov)))
                     x-pixel1 (- x-center (-> xx1 (/ zz1) (* fov)))]
                 (when (< x-pixel0 x-pixel1)
@@ -105,15 +106,18 @@
     ;; render the walls
     (for-loop [(zb (- zcent r)) (<= zb (+ zcent r)) (inc zb)]
       (for-loop [(xb (- xcent r)) (<= xb (+ xcent r)) (inc xb)]
-        (if (pos? (lvl xb zb))
-          (do (when-not (pos? (lvl (inc xb) zb))
-                (render-wall (inc xb) (inc zb) (inc xb) zb))
-              (when-not (pos? (lvl xb (inc zb)))
-                (render-wall xb (inc zb) (inc xb) (inc zb))))
-          (do (when (pos? (lvl (inc xb) zb))
-                (render-wall (inc xb) zb (inc xb) (inc zb)))
-              (when (pos? (lvl xb (inc zb)))
-                (render-wall (inc xb) (inc zb) xb (inc zb)))))))
+        (let [c (lvl xb zb)
+              e (lvl (inc xb) zb)
+              s (lvl xb (inc zb))]
+          (if (pos? (lvl xb zb))
+            (do (when-not (pos? e);(pos? (lvl (inc xb) zb))
+                  (render-wall (inc xb) (inc zb) (inc xb) zb))
+                (when-not (pos? s) ;(pos? (lvl xb (inc zb)))
+                  (render-wall xb (inc zb) (inc xb) (inc zb))))
+            (do (when (pos? e) ;(pos? (lvl (inc xb) zb))
+                  (render-wall (inc xb) zb (inc xb) (inc zb)))
+                (when (pos? s); (pos? (lvl xb (inc zb)))
+                  (render-wall (inc xb) (inc zb) xb (inc zb))))))))
     ;; render the floor
     (dotimes [y view-height]
       (let [yd (/ (- (+ y 0.5) y-center) fov)

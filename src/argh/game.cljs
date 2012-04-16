@@ -14,8 +14,8 @@
     (Game. (spawn-player lvl) lvl)))
 
 (defn free? [lvl x y]
-  (let [x0 (Math/floor (- x 0.3)), x1 (Math/floor (+ x 0.3))
-        y0 (Math/floor (- y 0.3)), y1 (Math/floor (+ y 0.3))]
+  (let [x0 (Math/floor (- (+ 0.5 x) 0.3)), x1 (Math/floor (+ (+ 0.5 x) 0.3))
+        y0 (Math/floor (- (+ 0.5 y) 0.3)), y1 (Math/floor (+ (+ 0.5 y) 0.3))]
     (not (or (pos? (lvl x0 y0)) (pos? (lvl x1 y0))
              (pos? (lvl x0 y1)) (pos? (lvl x1 y1))))))
 
@@ -28,7 +28,6 @@
            (zero? i) [x xacc]
            (free? level (+ x (* xacc (/ i xsteps))) y) [(+ x (* xacc (/ i xsteps))) xacc]
            :else (recur (dec i) x 0)))
-
         ysteps (Math/floor (inc (Math/abs (* yacc 100))))
         [ny nyacc]
         (loop [i ysteps, y y, yacc yacc]
