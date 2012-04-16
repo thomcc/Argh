@@ -22,12 +22,12 @@
   (let [view-width screen.width
         view-height screen.height
         ctx (c/context screen)
-        floor (.-data (c/data (get-asset :test2))) ; todo: art for floor
-        wall (.-data (c/data (get-asset :test2)))
-        idata (c/data screen); (.getImageData ctx 0 0 view-width view-height)
+        floor (.-data (c/data (get-asset :floor))) ; todo: art for floor
+        wall (.-data (c/data (get-asset :wall)))
+        idata (.createImageData ctx view-width view-height)
         pixels idata.data
         z-buff (buff (* view-width view-height) 10000)
-        z-buff-wall (buff (* view-width view-height) 0)
+        z-buff-wall (buff view-width 0)
         x-cam (+ px #_(- (* (Math/cos rot) 0.3)))
         y-cam (+ py #_(- (* (Math/sin rot) 0.3)))
         z-cam (- (* 0.01 wk (Math/sin (* wp 0.4))) pz 0.2)
@@ -99,6 +99,7 @@
                                 (aset pixels (+ 1 pst) (aget wall (+ 1 tst)))
                                 (aset pixels (+ 2 pst) (aget wall (+ 2 tst)))
                                 (aset pixels (+ 3 pst) 255)))))))))))))]
+    (dotimes [i (* view-width view-height)] (aset pixels (+ 3 (* i 4)) 255))
     ;; render the walls
     (for-loop [(zb (- zcent 6)) (<= zb (+ zcent 6)) (inc zb)]
       (for-loop [(xb (- xcent 6)) (<= xb (+ xcent 6)) (inc xb)]
@@ -137,13 +138,19 @@
       (let [cl (aget z-buff i)]
         (when (pos? cl)
           (let [xp (mod i view-width)
-                yp (Math/floor (/ i view-width))
+                yp (* 14 (Math/floor (/ i view-width)))
                 xx (/ (- xp (/ view-width 2)) view-width)
                 i4 (* i 4)
                 r (aget pixels i4)
                 g (aget pixels (+ 1 i4))
                 b (aget pixels (+ 2 i4))
-                dark (max 0 (min 255 (Math/floor (/ 60000 (* cl cl)))))]
+                dark (Math/floor (- 300 (* cl 6 (inc (* xx xx 2)))))
+                dark (bit-shift-left
+                      (bit-shift-right
+                       (+ dark (* 4 (bit-and (+ xp yp) 3))) 4) 4)
+                dark (max 0 (min 255 (Math/floor dark)))
+                ;; dark (max 0 (min 255 (Math/floor (/ 60000 (* cl cl)))))
+                ]
             (aset pixels i4 (Math/floor (/ (* r dark) 255)))
             (aset pixels (+ 1 i4) (Math/floor (/ (* g dark) 255)))
             (aset pixels (+ 2 i4) (Math/floor (/ (* b dark) 255)))))))

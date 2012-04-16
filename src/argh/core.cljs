@@ -20,7 +20,8 @@
 
 (def assets {:wall "res/wall.png"
              :test "res/test.png"
-             :test2 "res/testgrad.png"})
+             :test2 "res/testgrad.png"
+             :floor "res/floor.png"})
 
 (def debug? true)
 
