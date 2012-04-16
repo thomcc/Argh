@@ -58,6 +58,7 @@ html, canvas, img {
 body {
   background-color: #666;
   margin: auto;
+  text-align: center;
   margin-top: 100px;
 }
 #screen {

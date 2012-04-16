@@ -4,7 +4,7 @@
             [argh.canvas :as c])
   (:use [argh.assets :only [load-assets]]
         [argh.core :only [view-width view-height ticks-per-sec assets page
-                          screen map-canv fps-elem]]
+                          screen fps-elem]]
         [argh.game :only [new-game tick]])
   (:use-macros [waltz.macros :only [defstate defevent in out]]))
 
@@ -35,7 +35,6 @@
                        (recur (dec n) (tick g in))
                        g)))
       (reset! last-tick (.getTime (js/Date.)))
-;      (screen/draw-minimap @game map-canv)
       (c/clear draw-cvs)
       (c/animate game-loop)
       (screen/render @game draw-cvs)

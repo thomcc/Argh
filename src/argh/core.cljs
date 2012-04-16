@@ -3,7 +3,7 @@
 
 (def screen (.getElementById js/document "screen"))
 (def fps-elem (.getElementById js/document "fps"))
-(def map-canv (.getElementById js/document "map"))
+;(def map-canv (.getElementById js/document "map"))
 
 (def page (state/machine :page))
 
