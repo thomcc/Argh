@@ -1,4 +1,55 @@
+html {
+	margin:0;
+	padding:0;
+	border:0;
+}
 
+body, div, span, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, code,
+del, dfn, em, img, q, dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, dialog, figure, footer, header,
+hgroup, nav, section {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-weight: inherit;
+	font-style: inherit;
+	font-size: 100%;
+	font-family: inherit;
+	vertical-align: baseline;
+}
+
+article, aside, dialog, figure, footer, header,
+hgroup, nav, section {
+	display:block;
+}
+
+body {
+	line-height: 1.5;
+	background: white;
+}
+
+table {
+	border-collapse: separate;
+	border-spacing: 0;
+}
+
+caption, th, td {
+	text-align: left;
+	font-weight: normal;
+	float:none !important;
+}
+table, th, td {
+	vertical-align: middle;
+}
+
+blockquote:before, blockquote:after, q:before, q:after { content: ''; }
+blockquote, q { quotes: "" ""; }
+
+a img { border: none; }
 html { height: 100%; }
 html, canvas, img {
   image-rendering: optimizeSpeed;
@@ -11,22 +62,80 @@ body {
   background-color: #333;
   color: orange;
   margin: auto;
-  width: 640px;
-  text-align: center;
-  margin-top: 100px;
+  padding: 10px 80px;/*30px 80px;*/
+/*  width: 640px;
+  margin-top: 100px;*/
 }
+a {
+  text-decoration: none;
+  color: #b2b2b2;
+}
+#wrapper {
+  margin: auto;
+  width: 1024px;
+}
+#about {
+  font: 12px monospace;
+  padding: 13px;
+  padding-top: 0px;
+  clear: left;
+  width: 877px;
+  border: 1px gray solid;
+  margin-top: -2px;
+}
+
 #screen {
+  float: left;
+  border: 1px gray solid;
+  margin: auto;
   width: 640px;
   height: 480px;
+}
+
+#status {
+  font: 12px monospace;
+  width: 240px;
+  padding: 10px;
+  margin-left: -2px;
+  float: left;
+  border: 1px gray solid;
+  height: 460px;
+}
+
+#fps {
+  display: block;
   margin: auto;
-  border: 1px solid black;
 }
-#fps, #info {
-  text-align: left;
+
+.clearfix:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+    }
+* html .clearfix             { zoom: 1; } /* IE6 */
+*:first-child+html .clearfix { zoom: 1; } /* IE7 */
+
+​p {
+  margin: 15px;
 }
-#info {
+#fps {
 
 }
-#info p {
-  text-align: left;
+
+#minimap {
+  position: absolute;
+  width: 120px;
+  height: 120px;
 }
+#map, #ent {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  top: 0;
+  left: 0;
+}
+#map { z-index: -1; }
+#ent { z-index: 1; }
