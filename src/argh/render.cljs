@@ -143,3 +143,17 @@
             (aset pixels (+ 1 i4) (Math/floor (/ (* g dark) 255)))
             (aset pixels (+ 2 i4) (Math/floor (/ (* b dark) 255)))))))
     (.putImageData ctx idata 0 0)))
+(defn draw-minimap [{{:keys [w h] :as lvl} :level} cvs]
+  (let [ctx (c/context cvs), sc (/ cvs.width w)]
+    (dotimes [j h]
+      (dotimes [i w]
+        (doto ctx
+          (c/fill-style (["white" "gray" "black"] (lvl i j)))
+          (c/fill-rect (* sc i) (* sc j) sc sc))))))
+(defn draw-ents
+  [{{px :x py :y} :player {w :w} :level} entcvs]
+  (c/clear entcvs)
+  (let [sc (/ entcvs.width w)]
+    (doto (c/context entcvs)
+      (c/fill-style "green")
+      (c/fill-rect (* px sc) (* py sc) sc sc))))

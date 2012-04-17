@@ -48,16 +48,15 @@
 ;(derive ::webkit-sound ::sound)
 
 
-;; (defmethod loaded ::sound [which name snd]
-;;   (load-complete name #(do (set! snd.currentTime 0)
-;;                            (.play snd))))
-
-(defmulti load
-  (fn [_ item]
-    (condp re-matches item
-      (js/RegExp. "(.*)\\.(png|gif|jpe?g)") :image
-;;      (js/RegExp. "(.*)\\.wav") :sound
-      :unknown)))
+(defmethod loaded :sound [which name snd]
+  (load-complete name #(do (set! snd.currentTime 0)
+                           (.play snd))))
+(defn asset-type [url]
+  (condp re-matches url
+    (js/RegExp. "(.*)\\.(png|gif|jpe?g)") :image
+    (js/RegExp. "(.*)\\.wav") :sound
+    :unknown))
+(defmulti load (fn [_ item] (asset-type item)))
 
 (defmethod load :default [name item]
   (when debug?
@@ -68,14 +67,24 @@
     (set! img.src item)
     (set! img.onload #(loaded :image name img))))
 
-;; (defmethod load :sound [name item]
-;;   (let [snd (js/Audio. item)]
-;;     ;; eh it should at least work for chrome this way
-;;     (loaded ::sound )
-;;     ))
+(defmethod load :sound [name item]
+  (let [snd (js/Audio. item)]
+    ;; eh it should at least work for chrome this way (usually).
+    (loaded :sound name snd)))
+
+(defmulti temp-asset asset-type)
+
+(defmethod temp-asset :sound [_] (fn []))
+
+(defmethod temp-asset :image [_]
+  (let [c (create :canvas)]
+    (set! c.width 16)
+    (set! c.height 16)
+    c))
 
 (defn load-assets [assets]
   (doseq [[key asset] assets]
+    (swap! asset-table assoc key (temp-asset asset))
     (swap! pending conj key)
     (load key asset))
   (js/setTimeout give-up 1000))

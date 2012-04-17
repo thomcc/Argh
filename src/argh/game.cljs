@@ -1,5 +1,6 @@
 (ns argh.game
-  (:use [argh.level :only [new-cave open-pos]]))
+  (:use [argh.level :only [new-cave open-pos]]
+        [argh.assets :only [get-asset]]))
 
 (defrecord Player [x y z rot xacc yacc rotacc walk walkphase])
 
@@ -26,14 +27,16 @@
         (loop [i xsteps, x x, xacc xacc]
           (cond
            (zero? i) [x xacc]
-           (free? level (+ x (* xacc (/ i xsteps))) y) [(+ x (* xacc (/ i xsteps))) xacc]
+           (free? level (+ x (* xacc (/ i xsteps))) y)
+           [(+ x (* xacc (/ i xsteps))) xacc]
            :else (recur (dec i) x 0)))
         ysteps (Math/floor (inc (Math/abs (* yacc 100))))
         [ny nyacc]
         (loop [i ysteps, y y, yacc yacc]
           (cond
            (zero? i) [y yacc]
-           (free? level x (+ y (* yacc (/ i ysteps)))) [(+ y (* yacc (/ i ysteps))) yacc]
+           (free? level x (+ y (* yacc (/ i ysteps))))
+           [(+ y (* yacc (/ i ysteps))) yacc]
            :else (recur (dec i) y 0)))]
     (assoc player :x nx, :y ny, :xacc xacc, :yacc yacc)))
 
@@ -43,7 +46,7 @@
         :else 0))
 
 
-(def step-snd (.getElementById js/document "step"))
+;(def step-snd (.getElementById js/document "step"))
 
 (defn move-player
   [{{:keys [x y rot rotacc] :as player} :player l :level :as game-state} i]
@@ -63,20 +66,16 @@
               (update-in [:xacc] - (* 0.03 (+ (* dx (Math/cos rot))
                                               (* dy (Math/sin rot)))))
               (update-in [:yacc] - (* 0.03 (- (* dy (Math/cos rot))
-                                              (* dx (Math/sin rot))))))
-        gs-now
-        (-> game-state
-            (assoc-in [:player] (move* p l))
-            (update-in [:player]
-                       (fn [player]
-                         (-> player
-                             (update-in [:xacc] * 0.6)
-                             (update-in [:yacc] * 0.6)
-                             (update-in [:rot] + rotacc)
-                             (update-in [:rotacc] * 0.4)))))]
-    (when (> move 0.7)
-      (.play step-snd; (.getElementById js/document "step")
-       ))
-    gs-now))
+                                              (* dx (Math/sin rot))))))]
+    (when (> move 0.7) ((get-asset :step)))
+    (-> game-state
+        (assoc-in [:player] (move* p l))
+        (update-in [:player]
+                   (fn [player]
+                     (-> player
+                         (update-in [:xacc] * 0.6)
+                         (update-in [:yacc] * 0.6)
+                         (update-in [:rot] + rotacc)
+                         (update-in [:rotacc] * 0.4)))))))
 
 (defn tick [game input] (-> game (move-player input)))

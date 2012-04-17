@@ -71,12 +71,11 @@
                  (generate its op n w h)
                  (outline w h)
                  (level w h))]
-    (pr (.toString lvl))
+;    (pr (.toString lvl))
     lvl))
 
-(defn new-cave [w h] (level-generate w h 0.85 true 6 20000))
-(defn copy [a]
-  (amap a i ret (aclone (aget ret i))))
+(defn new-cave [w h] (level-generate w h 0.85 true 6 25000))
+(defn copy [a] (amap a i ret (aclone (aget ret i))))
 
 (defn open-pos [{:keys [w h] :as lvl}]
   (let [cp (copy (get lvl :data))
@@ -90,22 +89,18 @@
             (when (> @box @largest-size)
               (reset! largest-size @box)
               (reset! largest-open [i j]))))))
-    (when debug?
-      (let [[lx ly] @largest-open]
-       (prn (str "Found cave at [" lx ", " ly "] of size " @largest-size "."))))
-    @largest-open)
-  #_(let [open (array)]
-    (dotimes [i w]
-      (dotimes [j h]
-        (when (zero? (lvl i j))
-          (.push open [i j]))))
-    (rand-nth open)))
+    @largest-open))
 
 (defn fill-open [x y lvl ary found-atom]
-  (when (and (zero? (aget (aget ary y) x)) (zero? (lvl x y)))
-    (aset (aget ary y) x -1)
-    (swap! found-atom inc)
-    (fill-open (inc x) y lvl ary found-atom)
-    (fill-open (dec x) y lvl ary found-atom)
-    (fill-open x (inc y) lvl ary found-atom)
-    (fill-open x (dec y) lvl ary found-atom)))
+  (loop [stk [[x y]]]
+    (let [[xx yy] (peek stk)]
+      (when (pos? (count stk))
+        (if (and (zero? (aget (aget ary yy) xx)) (zero? (lvl xx yy)))
+          (do (aset (aget ary yy) xx -1)
+              (swap! found-atom inc)
+              (recur (-> stk pop
+                         (conj [(inc xx) yy])
+                         (conj [(dec xx) yy])
+                         (conj [xx (inc yy)])
+                         (conj [xx (dec yy)]))))
+          (recur (pop stk)))))))
