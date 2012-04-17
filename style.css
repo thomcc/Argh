@@ -1,7 +1,7 @@
 html {
-	margin:0;
-	padding:0;
-	border:0;
+  margin:0;
+  padding:0;
+  border:0;
 }
 
 body, div, span, object, iframe,
@@ -12,38 +12,38 @@ fieldset, form, label, legend,
 table, caption, tbody, tfoot, thead, tr, th, td,
 article, aside, dialog, figure, footer, header,
 hgroup, nav, section {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	font-weight: inherit;
-	font-style: inherit;
-	font-size: 100%;
-	font-family: inherit;
-	vertical-align: baseline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-weight: inherit;
+  font-style: inherit;
+  font-size: 100%;
+  font-family: inherit;
+  vertical-align: baseline;
 }
 
 article, aside, dialog, figure, footer, header,
 hgroup, nav, section {
-	display:block;
+  display:block;
 }
 
 body {
-	line-height: 1.5;
-	background: white;
+  line-height: 1.5;
+  background: white;
 }
 
 table {
-	border-collapse: separate;
-	border-spacing: 0;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 caption, th, td {
-	text-align: left;
-	font-weight: normal;
-	float:none !important;
+  text-align: left;
+  font-weight: normal;
+  float:none !important;
 }
 table, th, td {
-	vertical-align: middle;
+  vertical-align: middle;
 }
 
 blockquote:before, blockquote:after, q:before, q:after { content: ''; }
@@ -62,9 +62,7 @@ body {
   background-color: #333;
   color: orange;
   margin: auto;
-  padding: 10px 80px;/*30px 80px;*/
-/*  width: 640px;
-  margin-top: 100px;*/
+  padding: 10px 80px;
 }
 a {
   text-decoration: none;
@@ -77,11 +75,10 @@ a {
 #about {
   font: 12px monospace;
   padding: 13px;
-  padding-top: 0px;
   clear: left;
-  width: 877px;
+  width: 876px;
   border: 1px gray solid;
-  margin-top: -2px;
+  margin-top: -1px;
 }
 
 #screen {
@@ -108,21 +105,16 @@ a {
 }
 
 .clearfix:after {
-    visibility: hidden;
-    display: block;
-    font-size: 0;
-    content: " ";
-    clear: both;
-    height: 0;
-    }
-* html .clearfix             { zoom: 1; } /* IE6 */
-*:first-child+html .clearfix { zoom: 1; } /* IE7 */
-
-​p {
-  margin: 15px;
+  visibility: hidden;
+  display: block;
+  font-size: 0;
+  content: " ";
+  clear: both;
+  height: 0;
 }
-#fps {
 
+p {
+  margin: 15px;
 }
 
 #minimap {
