@@ -3963,7 +3963,9 @@ Vd(qf, "\ufdd0'image", function(a, b) {
 });
 Vd(qf, "\ufdd0'sound", function(a, b) {
   var d = new Audio(b);
-  return of.call(j, "\ufdd0'sound", a, d)
+  return d.addEventListener("canplaythrough", function() {
+    return of.call(j, "\ufdd0'sound", a, d)
+  })
 });
 var rf, sf = X.g(U([], {})), tf = X.g(U([], {})), uf = X.g(U([], {})), vf = X.g(U([], {})), wf = K.c(U([], {}), "\ufdd0'hierarchy", Md);
 rf = new Zd("temp-asset", pf, "\ufdd0'default", wf, sf, tf, uf, vf);
