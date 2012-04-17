@@ -70,7 +70,7 @@
 (defmethod load :sound [name item]
   (let [snd (js/Audio. item)]
     ;; eh it should at least work for chrome this way (usually).
-    (loaded :sound name snd)))
+    (.addEventListener snd "canplaythrough" #(loaded :sound name snd))))
 
 (defmulti temp-asset asset-type)
 
