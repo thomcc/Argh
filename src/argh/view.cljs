@@ -23,8 +23,8 @@
    [:p "This \"game\" was an experiment where I learn what would be necessary
        to make a game in ClojureScript, which is something I plan on doing for "
     [:a {:href "http://www.ludumdare.com/compo/"} "Ludum Dare 23"]
-    " (a game competition), next weekend."]
+    "."]
    [:p "Source is "
     [:a {:href "https://github.com/thomcc/Argh"} "located on github"]
-    ", but it's not really a pretty sight (especially the rendering code...)."]
-   [:p "It should work best on chrome, but I've also been testing in Firefox."]])
+    ".  Do whatever you want with it."]
+   [:p "It should work best on chrome, but I've also tested in Firefox."]])
