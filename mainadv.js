@@ -3526,8 +3526,8 @@ function Ee(a, b) {
 }
 var Ge = Z.a(ue, ib);
 function Fe() {
-  var a = Ce.call(j, S(["\ufdd0'div#about", S(["\ufdd0'p", "Control with arrow keys, strafing is possible with A and D. You can also\n      halt the game with ESC."]), S(["\ufdd0'p", 'This "game" was an experiment where I learn what would be necessary\n       to make a game in ClojureScript, which is something I plan on doing for ', S(["\ufdd0'a", U(["\ufdd0'href"], {"\ufdd0'href":"http://www.ludumdare.com/compo/"}), "Ludum Dare 23"]), " (a game competition), next weekend."]), S(["\ufdd0'p", "Source is ", 
-  S(["\ufdd0'a", U(["\ufdd0'href"], {"\ufdd0'href":"https://github.com/thomcc/Argh"}), "located on github"]), ", but it's not really a pretty sight (especially the rendering code...)."]), S(["\ufdd0'p", "It should work best on chrome, but I've also been testing in Firefox."])]));
+  var a = Ce.call(j, S(["\ufdd0'div#about", S(["\ufdd0'p", "Control with arrow keys, strafing is possible with A and D. You can also\n      halt the game with ESC."]), S(["\ufdd0'p", 'This "game" was an experiment where I learn what would be necessary\n       to make a game in ClojureScript, which is something I plan on doing for ', S(["\ufdd0'a", U(["\ufdd0'href"], {"\ufdd0'href":"http://www.ludumdare.com/compo/"}), "Ludum Dare 23"]), "."]), S(["\ufdd0'p", "Source is ", 
+  S(["\ufdd0'a", U(["\ufdd0'href"], {"\ufdd0'href":"https://github.com/thomcc/Argh"}), "located on github"]), ". Do whatever you want with it."]), S(["\ufdd0'p", "It should work best on chrome, but I've also tested in Firefox."])]));
   a.setAttribute("crateGroup", Ge);
   return a
 }
